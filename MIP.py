@@ -1,6 +1,7 @@
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
+import time
 
 
 def compute_M_upper_bound(X, y, k, time_limit=30):
@@ -138,7 +139,7 @@ def discrete_first_order(X, y, k, max_iter=1000, tol=1e-6, n_restarts=50, seed=1
     return best_beta, best_val
 
 
-def best_subset_mio(X, y, k, time_limit=500, beta_init=None, M=None):
+def best_subset_mio(X, y, k, time_limit=500, beta_init=None, M=None, trajectory_log=None):
 
     n, p = X.shape
 
@@ -195,7 +196,39 @@ def best_subset_mio(X, y, k, time_limit=500, beta_init=None, M=None):
             beta[j].Start = float(b_scaled)
             z[j].Start = 1.0 if abs(b_scaled) > 1e-6 else 0.0
 
-    model.optimize()
+    # trajectory log
+    callback = None
+    t0 = None
+    if trajectory_log is not None:
+        if beta_init is not None:
+            b_scaled0 = beta_init * col_norms
+            r0 = y_c - X_std @ b_scaled0
+            trajectory_log.append((0.0, 0.5 * float(r0 @ r0)))
+        t0 = time.time()
+
+        def _log_incumbent(model, where):
+            if where == GRB.Callback.MIPSOL:
+                obj_best = model.cbGet(GRB.Callback.MIPSOL_OBJBST)
+                if obj_best < 1e90:
+                    trajectory_log.append((time.time() - t0, obj_best))
+
+        callback = _log_incumbent
+
+    if callback is not None:
+        model.optimize(callback)
+    else:
+        model.optimize()
+
+    if trajectory_log is not None and model.SolCount > 0:
+        trajectory_log.append((time.time() - t0, model.ObjVal))
+
+    if callback is not None:
+        model.optimize(callback)
+    else:
+        model.optimize()
+
+    if trajectory_log is not None and model.SolCount > 0:
+        trajectory_log.append((time.time() - t0, model.ObjVal))
 
     if model.SolCount == 0:
         return np.zeros(p), np.zeros(p), 1.0, np.inf
