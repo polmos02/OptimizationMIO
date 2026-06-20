@@ -222,14 +222,6 @@ def best_subset_mio(X, y, k, time_limit=500, beta_init=None, M=None, trajectory_
     if trajectory_log is not None and model.SolCount > 0:
         trajectory_log.append((time.time() - t0, model.ObjVal))
 
-    if callback is not None:
-        model.optimize(callback)
-    else:
-        model.optimize()
-
-    if trajectory_log is not None and model.SolCount > 0:
-        trajectory_log.append((time.time() - t0, model.ObjVal))
-
     if model.SolCount == 0:
         return np.zeros(p), np.zeros(p), 1.0, np.inf
 
