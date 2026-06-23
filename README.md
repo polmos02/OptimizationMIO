@@ -1,6 +1,3 @@
-# OptimizationMIO
-
-
 # Exact Sparse Regression 
 
 The goal of this project is to study the exact sparse regression problem with an l_0 constraint.  
