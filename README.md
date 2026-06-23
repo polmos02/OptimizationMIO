@@ -9,7 +9,7 @@ least squares sense.
 
 This problem is known as best subset selection and has been extensively studied in statistics and
 optimization due to its strong interpretability and predictive performance.   
-However, the 0 constraint makes the problem computationally challenging, as it requires searching over many possible subsets of
+However, the l_0 constraint makes the problem computationally challenging, as it requires searching over many possible subsets of
 variables.  
 
 Recent advances in Mixed-Integer Optimization (MIO) have made it possible to solve such problems
